@@ -1,0 +1,43 @@
+1) 
+
+parent process
+
+
+int pfd[2];                                     /* Pipe file descriptors */
+
+    if (pipe(pfd) == -1)                            /* Create pipe */
+        exit(0);
+
+switch (fork()) {
+    case -1:
+        exit(0);
+
+    case 0:             /* Second child: exec 'wc' to read from pipe */
+        if (close(pfd[1]) == -1)                    /* Write end is unused */
+            exit(0);
+
+        /* Duplicate stdin on read end of pipe; close duplicated descriptor */
+
+        if (pfd[0] != STDIN_FILENO) {               /* Defensive check */
+            if (dup2(pfd[0], STDIN_FILENO) == -1)
+                exit(0);
+            if (close(pfd[0]) == -1)
+                exit(0);
+        }
+
+        execlp("./CHILD", NULL, NULL);
+        exit(0);
+
+    default: /* Parent falls through */
+        break;
+    }
+
+char in_buff[50]; // this will hold the message "child salutes parent"
+
+fgets(in_buff,sizeof(in_buff)+1,stdin); // This will store what is in stdin, which will come from the pipe. (child will write the message to the pipe)
+
+read(pfd[0],in_buff,sizeof(in_buff));
+
+write(pfd[1], argv[1], strlen(argv[1]))
+
+
